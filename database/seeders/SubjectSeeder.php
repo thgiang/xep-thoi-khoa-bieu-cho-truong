@@ -1,0 +1,81 @@
+<?php
+
+namespace Database\Seeders;
+
+use Carbon\Carbon;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class SubjectSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        $data = [];
+        $data[] = ['name' => 'Toán 6', 'lab_id' => null];
+        $data[] = ['name' => 'Toán 7', 'lab_id' => null];
+        $data[] = ['name' => 'Toán 8', 'lab_id' => null];
+        $data[] = ['name' => 'Toán 9', 'lab_id' => null];
+        $data[] = ['name' => 'Lý 6', 'lab_id' => null];
+        $data[] = ['name' => 'Lý 7', 'lab_id' => null];
+        $data[] = ['name' => 'Lý 8', 'lab_id' => null];
+        $data[] = ['name' => 'Lý 9', 'lab_id' => null];
+        $data[] = ['name' => 'Hóa 6', 'lab_id' => null];
+        $data[] = ['name' => 'Hóa 8', 'lab_id' => null];
+        $data[] = ['name' => 'Hóa 9', 'lab_id' => null];
+        $data[] = ['name' => 'Sinh 6', 'lab_id' => null];
+        $data[] = ['name' => 'Sinh 7', 'lab_id' => null];
+        $data[] = ['name' => 'Sinh 8', 'lab_id' => null];
+        $data[] = ['name' => 'Sinh 9', 'lab_id' => null];
+        $data[] = ['name' => 'CN 6', 'lab_id' => null];
+        $data[] = ['name' => 'CN 7', 'lab_id' => null];
+        $data[] = ['name' => 'CN 8', 'lab_id' => null];
+        $data[] = ['name' => 'CN 9', 'lab_id' => null];
+        $data[] = ['name' => 'TD 6', 'lab_id' => null];
+        $data[] = ['name' => 'TD 7', 'lab_id' => null];
+        $data[] = ['name' => 'TD 8', 'lab_id' => null];
+        $data[] = ['name' => 'TD 9', 'lab_id' => null];
+        $data[] = ['name' => 'Tin 6', 'lab_id' => 1];
+        $data[] = ['name' => 'Tin 7', 'lab_id' => 1];
+        $data[] = ['name' => 'Tin 8', 'lab_id' => 1];
+        $data[] = ['name' => 'Tin 9', 'lab_id' => 1];
+        $data[] = ['name' => 'HĐTN', 'lab_id' => null];
+        $data[] = ['name' => 'Văn 6', 'lab_id' => null];
+        $data[] = ['name' => 'Văn 7', 'lab_id' => null];
+        $data[] = ['name' => 'Văn 8', 'lab_id' => null];
+        $data[] = ['name' => 'Văn 9', 'lab_id' => null];
+        $data[] = ['name' => 'Sử 6', 'lab_id' => null];
+        $data[] = ['name' => 'Sử 7', 'lab_id' => null];
+        $data[] = ['name' => 'Sử 8', 'lab_id' => null];
+        $data[] = ['name' => 'Sử 9', 'lab_id' => null];
+        $data[] = ['name' => 'Địa 6', 'lab_id' => null];
+        $data[] = ['name' => 'Địa 7', 'lab_id' => null];
+        $data[] = ['name' => 'Địa 8', 'lab_id' => null];
+        $data[] = ['name' => 'Địa 9', 'lab_id' => null];
+        $data[] = ['name' => 'CD 6', 'lab_id' => null];
+        $data[] = ['name' => 'CD 7', 'lab_id' => null];
+        $data[] = ['name' => 'CD 8', 'lab_id' => null];
+        $data[] = ['name' => 'CD 9', 'lab_id' => null];
+        $data[] = ['name' => 'Anh 6', 'lab_id' => null];
+        $data[] = ['name' => 'Anh 7', 'lab_id' => null];
+        $data[] = ['name' => 'Anh 8', 'lab_id' => null];
+        $data[] = ['name' => 'Anh 9', 'lab_id' => null];
+        $data[] = ['name' => 'MT 6', 'lab_id' => null];
+        $data[] = ['name' => 'MT 7', 'lab_id' => null];
+        $data[] = ['name' => 'MT 8', 'lab_id' => null];
+        $data[] = ['name' => 'MT 9', 'lab_id' => null];
+        $data[] = ['name' => 'Nhạc 6', 'lab_id' => null];
+        $data[] = ['name' => 'Nhạc 7', 'lab_id' => null];
+        $data[] = ['name' => 'Nhạc 8', 'lab_id' => null];
+        foreach ($data as &$datum) {
+            $datum['created_at'] = Carbon::now();
+            $datum['updated_at'] = Carbon::now();
+        }
+
+        DB::table('subjects')->insert($data);
+    }
+}
