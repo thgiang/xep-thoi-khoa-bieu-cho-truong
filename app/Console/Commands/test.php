@@ -1,20 +1,43 @@
 <?php
 
-namespace Database\Seeders;
+namespace App\Console\Commands;
 
-use Carbon\Carbon;
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Console\Command;
 
-class MapTeacherSubjectTeamSeeder extends Seeder
+class test extends Command
 {
     /**
-     * Run the database seeds.
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'test';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Command description';
+
+    /**
+     * Create a new command instance.
      *
      * @return void
      */
-    public function run()
+    public function __construct()
     {
+        parent::__construct();
+    }
+
+    /**
+     * Execute the console command.
+     *
+     * @return int
+     */
+    public function handle()
+    {
+
         $data = [];
 
 
@@ -317,44 +340,26 @@ class MapTeacherSubjectTeamSeeder extends Seeder
         $data[] = ['team_name' => '6D', 'teacher_name' => 'Hà Tin', 'subject_name' => 'Tin 6', 'number_of_lesson' => 1];
         $data[] = ['team_name' => '8A', 'teacher_name' => 'Hà Tin', 'subject_name' => 'SH 8', 'number_of_lesson' => 1];
 
-
-        $teams = DB::table('teams')->select('id', 'name')->get()->keyBy('name');
-        $teachers = DB::table('teachers')->select('id', 'name')->get()->keyBy('name');
-        $subjects = DB::table('subjects')->select('id', 'name')->get()->keyBy('name');
-
-        $existing = array();
-        foreach ($data as &$datum) {
-            $name = $datum['subject_name'] . ' ' . $datum['team_name'];
-            if (!in_array($name, $existing)) {
-                $existing[] = $name;
-            } else {
-                exit('Trùng giáo viên '.$name);
+        $lops = [];
+        foreach ($data as $datum) {
+            if (!isset($lops[$datum['team_name']])) {
+                $lops[$datum['team_name']] = array();
             }
-
-            $datum['subject_id'] = $subjects[$datum['subject_name']]->id;
-            $datum['teacher_id'] = $teachers[$datum['teacher_name']]->id;
-            $datum['team_id'] = $teams[$datum['team_name']]->id;
-            unset($datum['subject_name']);
-            unset($datum['teacher_name']);
-            unset($datum['team_name']);
-
-            $datum['created_at'] = Carbon::now();
-            $datum['updated_at'] = Carbon::now();
-            $datum['code'] = $this->RandomString(5);
+            $lops[$datum['team_name']][$datum['subject_name']] = $datum['number_of_lesson'];
         }
-        DB::table('map_teacher_subject_teams')->insert($data);
-        //sort($existing);
-        //print_r($existing);
-    }
 
-    public function RandomString($length)
-    {
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $randstring = '';
-        for ($i = 0; $i < $length; $i++) {
-            $randstring .= $characters[rand(0, strlen($characters) - 1)];
+        ksort($lops);
+        foreach ($lops as $team_name => &$lop) {
+            ksort($lop);
         }
-        return $randstring;
-    }
 
+        foreach ($lops as $team_name => $lop) {
+            echo $team_name.': ';
+            foreach ($lop as $subject_name => &$item) {
+                echo $subject_name .'('.$item.'), ';
+            }
+            echo "\n";
+        }
+        return 0;
+    }
 }

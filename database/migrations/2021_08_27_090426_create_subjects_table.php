@@ -18,8 +18,8 @@ class CreateSubjectsTable extends Migration
             $table->string('name');
             $table->integer('lab_id')->nullable()->comment('Sử dụng phòng thực hành nếu có');
             $table->integer('block')->default(1)->comment('So tiet lien tiep bat buoc, vi du Tin can 2 tiet');
-            $table->integer('require_couple')->default(0)->comment('Yeu cau co it nhat X lan trong tuan co 2 tiet lien, vi du kiem tra Van');
             $table->boolean('avoid_last_lesson')->default(false)->comment('Tranh tiet cuoi cho 1 so mon the duc, toan, van');
+            $table->boolean('require_spacing')->default(true)->comment('Tránh việc 2 ngày liên tiếp cùng học 1 môn');
             $table->timestamps();
         });
     }

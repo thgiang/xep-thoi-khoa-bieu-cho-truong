@@ -1,0 +1,30 @@
+Hồ Tuấn,Văn 7d,Văn 7d,Văn 7d,Văn 7d
+Tân,Văn 9d,Văn 9b,Văn 9d,Văn 9b,Văn 9b,Văn 9d,Văn 9d,Văn 9b,Văn 9b,Văn 9d,SH 9d
+Tr.Hoa,Văn 7a,Văn 7b,CD 8c,CD 8d,CD 8b,Văn 7b,Văn 7b,Văn 7a,Văn 7a,Văn 7a,Văn 7b,CD 8a,SH 7b
+Thơm,CN 6b,CN 6a,Sử 8a,Sử 8c,Sử 8d,Sử 8b,Sử 8d,Sử 8c,Văn 7c,Văn 7c,Sử 8b,Văn 7c,CN 7c,Sử 8a,CN 7b,CN 7a,Văn 7c,CN 7d
+Hường,Văn 8c,Văn 8a,Văn 8a,Văn 8a,TD 7a,TD 7b,Văn 8a,Văn 8c,Văn 8c,TD 7a,TD 7b,Văn 8c,SH 8c
+Lan Anh,Văn 8d,Văn 8b,CD 9b,CD 9c,CD 9d,CD 9a,Văn 8b,Văn 8b,Văn 8d,Văn 8b,Văn 8d,Văn 8d,SH 8d
+Nguyệt,Văn 9a,Văn 9a,Địa 8c,Địa 8c,Văn 9a,Văn 9a,Văn 9c,Văn 9c,Văn 9c,Văn 9c,Văn 9a,Văn 9c,SH 9c
+Tr.Xuyến,Văn 6d,Văn 6c,Văn 6d,Văn 6c,CD 7a,CD 7b,Sử 9b,Sử 9a,Sử 9d,Văn 6d,Văn 6d,Văn 6c,Văn 6c,CD 7d,CD 7c,Sử 9c,SH 6c
+Mai,Địa 9b,Địa 9c,Địa 9a,Địa 9d,Địa 6c,Địa 6b,Địa 6d,Địa 6a,Địa 7a,Địa 9c,Địa 6c,Địa 6d,Địa 6a,Địa 8d,Địa 6b,Địa 8b,Địa 7a,Địa 9d,Địa 9a,Địa 9b
+Huyền,Địa 7d,Địa 7c,Địa 7b,Sử 6a,Sử 6c,Sử 6b,Sử 6d,Sử 7d,TD 7c,Sử 7a,Sử 7b,Sử 7c,Sử 7a,Sử 7c,Sử 7b,TD 7c,Địa 7c,Sử 7d,Địa 7d,Địa 7b
+N.Xuyến,Anh 9c,Anh 7a,Anh 7c,Anh 7c,Anh 8a,Anh 8a,Anh 7a,Anh 8a,Anh 9c,Anh 7a,Anh 7c,SH 7c
+Chuyên,Anh 8c,Anh 9a,Anh 6d,Anh 6a,Anh 6c,Anh 6b,Anh 6b,Anh 6a,Anh 6d,Anh 8c,Anh 6a,Anh 6c,Anh 6d,Anh 9a,Anh 8c,Anh 6b,Anh 6c
+Ngát,Anh 8b,Anh 9d,Anh 8d,Anh 9b,Anh 7d,Anh 8b,Anh 8d,Anh 7b,Anh 7d,Anh 7b,Anh 7d,Anh 7b,Anh 9b,Anh 8d,Anh 8b,Anh 9d
+Nhật,MT 6b,MT 6a,MT 6d,MT 7b,MT 7c,MT 7d,MT 8d,Nhạc 6d,MT 7a,MT 9b,Nhạc 6c,MT 9d,Nhạc 7d,MT 9c,MT 9a,MT 8c,MT 8a,MT 6c,MT 8b
+N.Hương,Nhạc 7c,Nhạc 6a,Nhạc 6b,Nhạc 8b,Nhạc 8c,Nhạc 7b,Nhạc 7a,Nhạc 8a,Nhạc 8d
+Bông,Văn 6b,Văn 6a,Văn 6a,Văn 6a,Văn 6b,Văn 6b,CD 6d,Văn 6b,CD 6b,CD 6a,Văn 6a,CD 6c,SH 6a
+H.Hoa,Toán 6c,Toán 6d,Toán 6b,Toán 6b,Toán 6c,Toán 6d,Toán 6c,Toán 6b,Toán 6d,Toán 6c,Toán 6b,Toán 6d,SH 6d
+Phương,Hoá 9a,TN 6d,Hoá 9b,Hoá 9c,Hoá 9d,Hoá 8c,Hoá 8a,Hoá 8d,TN 6d,Hoá 8b,Hoá 9c,Hoá 9d,Hoá 9b,Hoá 9a,Hoá 8c,Hoá 8b,TN 6d,Hoá 8a,Hoá 8d,TN 6d
+T.Hà,Toán 8d,Toán 9c,Toán 9a,Toán 8d,Toán 9c,Toán 9a,Toán 8d,Toán 9a,Toán 9c,Toán 9c,Toán 8d,Toán 9a,SH 9a
+Hướng,Toán 9b,Toán 9d,Toán 8c,CN 9c,CN 9d,CN 9a,CN 9b,Toán 9d,Toán 9b,Toán 8c,Toán 8c,Toán 9b,Toán 9d,Toán 9d,Toán 8c,Toán 9b,SH 9b
+Tuyên,TN 6c,Lý 8d,Lý 8b,Lý 8a,TN 6c,Lý 8c,Lý 9d,TN 6c,Lý 9b,TN 6c,Lý 9b,Lý 9d,Tin 9b,Tin 9b,Tin 9d,Tin 9d
+Nghiệp,Toán 8b,Tin 9c,Tin 9c,Toán 8b,Toán 6a,Toán 6a,Tin 9a,Tin 9a,Toán 8b,Toán 6a,Toán 8b,Toán 6a,SH 8b
+H.Hương,CN 6d,CN 6c,CN 8b,Tin 7a,Tin 7a,Tin 7b,Tin 7b,Tin 7c,Tin 7c,Tin 7d,Tin 7d,Sinh 8b,Sinh 8a,Sinh 8d,Sinh 8c,CN 8b,Sinh 8c,Sinh 8a,Sinh 8d,Sinh 8b
+Long,TD 8c,TD 8d,TD 8b,TD 8a,TD 9c,TD 9a,TD 9d,TD 9b,TD 9b,TD 9d,TD 9a,TD 9c,TD 6d,TD 8d,TD 8b,TD 6d,TD 8c,TD 8a
+Tuyết,Sinh 7d,Sinh 7c,Sinh 7b,Sinh 7a,TD 7d,Sinh 7c,TD 6c,TD 6b,TD 7d,TD 6a,Sinh 7b,Sinh 7a,Sinh 7d,TD 6b,TD 6a,TD 6c
+Ly,TN 6a,TN 6b,Sinh 9d,Sinh 9a,Sinh 9b,Sinh 9c,Sinh 9c,TN 6a,TN 6b,Sinh 9d,TN 6a,TN 6b,Sinh 9b,TN 6a,Sinh 9a,TN 6b,SH 6b
+Hà HT,CN 8a,CN 8a
+Nhung,Toán 7c,CN 8c,Toán 7d,CN 8d,Toán 7d,Toán 7c,CN 8c,CN 8d,Toán 7c,Toán 7d,Lý 9c,Lý 9a,Lý 9a,Lý 9c,Toán 7c,Toán 7d,SH 7d
+Tâm,Toán 7b,Toán 7a,Toán 7b,Toán 7a,Toán 7b,Toán 7a,Lý 7c,Lý 7d,Lý 7b,Toán 7b,Toán 7a,Lý 7a,SH 7a
+Hà Tin,Tin 8a,Tin 8a,Toán 8a,Toán 8a,Tin 8c,Tin 8c,Tin 8d,Tin 8d,Tin 8b,Tin 8b,Toán 8a,Tin 6c,Toán 8a,Tin 6a,Tin 6b,Tin 6d,SH 8a

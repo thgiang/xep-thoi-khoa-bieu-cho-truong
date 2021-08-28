@@ -19,6 +19,7 @@ class CreateMapTeacherSubjectTeamsTable extends Migration
             $table->integer('subject_id');
             $table->integer('team_id');
             $table->integer('number_of_lesson')->comment('Tong so tiet hoc cua mon nay trong lop nay');
+            $table->string('code')->unique();
             $table->timestamps();
         });
     }
