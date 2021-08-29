@@ -27,9 +27,9 @@ class SubjectSeeder extends Seeder
         $data[] = ['name' => 'Lý 7', 'lab_id' => null, 'avoid_last_lesson' => false, 'block' => 1, 'require_spacing' => true];
         $data[] = ['name' => 'Lý 8', 'lab_id' => null, 'avoid_last_lesson' => false, 'block' => 1, 'require_spacing' => true];
         $data[] = ['name' => 'Lý 9', 'lab_id' => null, 'avoid_last_lesson' => false, 'block' => 1, 'require_spacing' => true];
-        $data[] = ['name' => 'TN 6', 'lab_id' => null, 'avoid_last_lesson' => false, 'block' => 1, 'require_spacing' => true];
-        $data[] = ['name' => 'Hoá 8', 'lab_id' => null, 'avoid_last_lesson' => false, 'block' => 1, 'require_spacing' => true];
-        $data[] = ['name' => 'Hoá 9', 'lab_id' => null, 'avoid_last_lesson' => false, 'block' => 1, 'require_spacing' => true];
+        $data[] = ['name' => 'KHTN 6', 'lab_id' => null, 'avoid_last_lesson' => false, 'block' => 1, 'require_spacing' => true];
+        $data[] = ['name' => 'Hóa 8', 'lab_id' => null, 'avoid_last_lesson' => false, 'block' => 1, 'require_spacing' => true];
+        $data[] = ['name' => 'Hóa 9', 'lab_id' => null, 'avoid_last_lesson' => false, 'block' => 1, 'require_spacing' => true];
         $data[] = ['name' => 'Sinh 7', 'lab_id' => null, 'avoid_last_lesson' => false, 'block' => 1, 'require_spacing' => true];
         $data[] = ['name' => 'Sinh 8', 'lab_id' => null, 'avoid_last_lesson' => false, 'block' => 1, 'require_spacing' => true];
         $data[] = ['name' => 'Sinh 9', 'lab_id' => null, 'avoid_last_lesson' => false, 'block' => 1, 'require_spacing' => true];

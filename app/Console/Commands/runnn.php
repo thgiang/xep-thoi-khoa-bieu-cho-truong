@@ -44,8 +44,8 @@ class runnn extends Command
      */
     public function handle()
     {
-        $min = 10;
-        for ($i = 0; $i < 1000; $i++) {
+        $min = 1000;
+        for ($i = 0; $i < 100000; $i++) {
             $worker = new Worker();
             $waiting = $worker->generateScheduler();
             if (count($waiting) < $min) {
@@ -56,7 +56,6 @@ class runnn extends Command
             } else {
                 echo "Dang chay lan ".$i." ket qua: ".count($waiting)." vs min=".$min."\n";
             }
-
         }
         return 0;
     }
@@ -64,6 +63,8 @@ class runnn extends Command
 
 class Worker
 {
+    private $deadEnd;
+    private $currentLine;
     private $schedule;
     private $teachersBusy;
     private $labsBusy;
@@ -94,8 +95,10 @@ class Worker
 
     public function __construct()
     {
-        $this->schedule = [];
+        $this->currentLine = '';
+        $this->deadEnd = explode(PHP_EOL, file_get_contents('deadEnd.txt'));
 
+        $this->schedule = [];
         $this->labs = Lab::get();
         $this->teams = Team::get();
         $this->subjects = Subject::get();
@@ -207,24 +210,38 @@ class Worker
 //                $this->setSchedule($timeToUsingLab['th'], $timeToUsingLab['t'], $usingLab);
 //            }
 //        }
+
+
         // Sắp lịch random
         // Foreach từ trên xuống dưới TKB tìm ô trống, chọn phương án phù hợp để điền
         // Chạy đi chạy lại vài lần, từ lần chạy sau bỏ bớt chế độ nghiêm ngặt
-        for ($try = 0; $try < 500; $try++) {
+        do {
             for ($th = 2; $th <= $this->endOfWeek; $th++) {
                 for ($t = 1; $t <= $this->lessonPerDay; $t++) {
                     foreach ($this->teams as $teamm) {
                         if ($this->schedule[$teamm->name]['TH' . $th]['T' . $t]->subject_name == '') {
-                            $option = $this->getReasonableOption($th, $t, $teamm, $try < 250);
-                            if ($option) {
+                            $option = $this->getReasonableOption($th, $t, $teamm, false);
+                            if ($option == 'ERR') {
+                                // Ko tìm đc 1 kết quả phù hợp nào thì break luôn khỏi vòng lặp này
+                                goto ret;
+                            }
+                            else if ($option == 'OFF') {
+                                // Nghỉ, thường rơi vào tiết 5 của 1 số ngày
+                                $off = new MapTeacherSubjectTeam();
+                                $off->subject_block = 1;
+                                $off->subject_name = "-";
+                                $off->team_name = $teamm->name;
+                                $this->setSchedule($th, $t, $off);
+                            } else {
                                 $this->setSchedule($th, $t, $option);
                             }
                         }
                     }
                 }
             }
-        }
+        } while (true);
 
+        ret:
         return $this->waiting;
     }
 
@@ -262,15 +279,29 @@ class Worker
 
     public function getReasonableOption($th, $t, $team, $strict = true)
     {
-        foreach ($this->waiting as $item) {
-            //if ($strict) {
-                // Random cho vui
-                if (rand(0, count($this->waiting)) % 2 == 1) {
-                    continue;
-                }
-            //}
+        // Một số khối đc nghỉ tiết 5
+        if ($t == $this->lessonPerDay) {
+            $group = substr($team->name, 0, 1);
+            if ($group == '6' && ($th == 3 || $th == 5 || $th == 6)) {
+                return 'OFF';
+            }
+            if ($group == '7' && ($th == 3 || $th == 6)) {
+                return 'OFF';
+            }
+            if ($group == '9' && $th == 5) {
+                return 'OFF';
+            }
+        }
 
+        //$options = $this->findWatingLessonsOfTeam($team);
+
+        foreach ($this->waiting as $item) {
             if ($item->team_id != $team->id) {
+                continue;
+            }
+
+            // Nếu rơi vào đường cụt đã biết trước đó thì continue sang phương án khác
+            if (in_array($this->currentLine.'_'.$item->id, $this->deadEnd)) {
                 continue;
             }
 
@@ -325,9 +356,27 @@ class Worker
             }
 
             if ($teacherFree && $labFree) {
+                $this->currentLine .= '_'.$item->id;
                 return $item;
             }
         }
+
+
+
+        // Nếu tới đây vẫn chưa tìm đc kết quả phù hợp thì sẽ cho đây là đường cụt
+        $this->deadEnd[] = $this->currentLine;
+        file_put_contents('deadEnd.txt', $this->currentLine."\n", FILE_APPEND);
+        return 'ERR';
+    }
+
+    public function findWatingLessonsOfTeam($team) {
+        $options = array();
+        foreach ($this->waiting as $item) {
+            if ($item->team_id == $team->id) {
+                $options[] = $item;
+            }
+        }
+        return $options;
     }
 
     public function setSchedule($th, $t, $map): bool

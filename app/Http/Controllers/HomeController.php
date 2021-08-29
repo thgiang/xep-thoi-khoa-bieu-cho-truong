@@ -12,6 +12,8 @@ use function Symfony\Component\Translation\t;
 
 class HomeController extends Controller
 {
+    private $deadEnd;
+    private $currentLine;
     private $schedule;
     private $teachersBusy;
     private $labsBusy;
@@ -43,6 +45,12 @@ class HomeController extends Controller
 
     public function __construct()
     {
+        if (!file_exists('../deadEnd.txt')) {
+            file_put_contents('../deadEndd.txt','');
+        }
+        $this->currentLine = '';
+        $this->deadEnd = explode(PHP_EOL, file_get_contents('../deadEnd.txt'));
+
         $this->schedule = [];
 
         $this->labs = Lab::get();
@@ -138,46 +146,59 @@ class HomeController extends Controller
         }
 
         // Sắp lịch sử dụng phòng Lab đầu tiên
-        $usingLabs = [];
-        foreach ($this->mapTeacherSubjectTeams as $mapTeacherSubjectTeam) {
-            if ($mapTeacherSubjectTeam->subject_lab_id) {
-                $usingLabs[] = $mapTeacherSubjectTeam;
-            }
-        }
-        usort($usingLabs, [$this, 'shortByUsingLab']);
-        foreach ($usingLabs AS $usingLab) {
-            $timeToUsingLab = $this->getReadyLabOption($usingLab);
-            if (!$timeToUsingLab) {
-                if ($this->debug) {
-                    echo '<pre>';
-                    print_r($usingLab);
-                }
-                exit("Không tìm được ngày sử dụng phòng máy cho môn ".$usingLab->subject_name." của lớp ".$usingLab->team_name.", vui lòng bổ sung phòng máy hoặc giảm bớt tiết học");
-            } else {
-                $this->setSchedule($timeToUsingLab['th'], $timeToUsingLab['t'], $usingLab);
-            }
-        }
+//        $usingLabs = [];
+//        foreach ($this->mapTeacherSubjectTeams as $mapTeacherSubjectTeam) {
+//            if ($mapTeacherSubjectTeam->subject_lab_id) {
+//                $usingLabs[] = $mapTeacherSubjectTeam;
+//            }
+//        }
+//        usort($usingLabs, [$this, 'shortByUsingLab']);
+//        foreach ($usingLabs AS $usingLab) {
+//            $timeToUsingLab = $this->getReadyLabOption($usingLab);
+//            if (!$timeToUsingLab) {
+//                if ($this->debug) {
+//                    echo '<pre>';
+//                    print_r($usingLab);
+//                }
+//                exit("Không tìm được ngày sử dụng phòng máy cho môn ".$usingLab->subject_name." của lớp ".$usingLab->team_name.", vui lòng bổ sung phòng máy hoặc giảm bớt tiết học");
+//            } else {
+//                $this->setSchedule($timeToUsingLab['th'], $timeToUsingLab['t'], $usingLab);
+//            }
+//        }
         // Sắp lịch random
         // Foreach từ trên xuống dưới TKB tìm ô trống, chọn phương án phù hợp để điền
         // Chạy đi chạy lại vài lần, từ lần chạy sau bỏ bớt chế độ nghiêm ngặt
-        for ($try = 0; $try < 100; $try++) {
+        do {
             for ($th = 2; $th <= $this->endOfWeek; $th++) {
                 for ($t = 1; $t <= $this->lessonPerDay; $t++) {
                     foreach ($this->teams as $teamm) {
                         if ($this->schedule[$teamm->name]['TH' . $th]['T' . $t]->subject_name == '') {
-                            $option = $this->getReasonableOption($th, $t, $teamm, $try < 50);
-                            if ($option) {
+                            $option = $this->getReasonableOption($th, $t, $teamm, true);
+                            if ($option == 'ERR') {
+                                // Ko tìm đc 1 kết quả phù hợp nào thì break luôn khỏi vòng lặp này
+                                goto ret;
+                            }
+                            else if ($option == 'OFF') {
+                                // Nghỉ, thường rơi vào tiết 5 của 1 số ngày
+                                $off = new MapTeacherSubjectTeam();
+                                $off->subject_block = 1;
+                                $off->subject_name = "-";
+                                $off->team_name = $teamm->name;
+                                $this->setSchedule($th, $t, $off);
+                            } else {
                                 $this->setSchedule($th, $t, $option);
                             }
                         }
                     }
                 }
             }
-        }
+        } while (true);
+
+        ret:
 
         //echo count($this->schedule);
         echo '<pre>';
-        print_r($this->waiting);
+       // print_r($this->waiting);
         echo '</pre>';
         echo count($this->waiting);
         echo '/';
@@ -223,15 +244,27 @@ class HomeController extends Controller
 
     public function getReasonableOption($th, $t, $team, $strict = true)
     {
+        // Một số khối đc nghỉ tiết 5
+        if ($t == $this->lessonPerDay) {
+            $group = substr($team->name, 0, 1);
+            if ($group == '6' && ($th == 3 || $th == 5 || $th == 6)) {
+                return 'OFF';
+            }
+            if ($group == '7' && ($th == 3 || $th == 6)) {
+                return 'OFF';
+            }
+            if ($group == '9' && $th == 5) {
+                return 'OFF';
+            }
+        }
+
         foreach ($this->waiting as $item) {
-            if ($strict) {
-                // Random cho vui
-                if (rand(0, count($this->waiting)) % 2 == 1) {
-                    continue;
-                }
+            if ($item->team_id != $team->id) {
+                continue;
             }
 
-            if ($item->team_id != $team->id) {
+            // Nếu rơi vào đường cụt đã biết trước đó thì continue sang phương án khác
+            if (in_array($this->currentLine.'_'.$item->id, $this->deadEnd)) {
                 continue;
             }
 
@@ -242,13 +275,13 @@ class HomeController extends Controller
 
             // Ktra xem giáo viên có đang dạy lớp khác hay ko
             $teacherFree = false;
-            if ($this->teachersBusy[$item->teacher_name]['TH'.$th]['T'.$t] == '') {
+            if ($this->teachersBusy[$item->teacher_name]['TH' . $th]['T' . $t] == '') {
                 $teacherFree = true;
             }
 
             // Nếu môn học này dùng phòng lab thì ktra xem phòng lab có trống hay ko
             $labFree = false;
-            if ($item->subject_lab_id == null || $this->labsBusy[$item->subject_lab_id]['TH'.$th]['T'.$t] == '') {
+            if ($item->subject_lab_id == null || $this->labsBusy[$item->subject_lab_id]['TH' . $th]['T' . $t] == '') {
                 $labFree = true;
             }
 
@@ -256,7 +289,7 @@ class HomeController extends Controller
                 // Trong 1 ngày không học 2 môn giống nhau
                 $isDuplicate = false;
                 for ($i = 1; $i <= $this->lessonPerDay; $i++) {
-                    if(str_replace('KT ', ' ',$item->subject_name) == str_replace('KT ', ' ', $this->schedule[$team->name]['TH'.$th]['T'.$i]->subject_name)) {
+                    if (str_replace('KT ', ' ', $item->subject_name) == str_replace('KT ', ' ', $this->schedule[$team->name]['TH' . $th]['T' . $i]->subject_name)) {
                         $isDuplicate = true;
                         break;
                     }
@@ -274,7 +307,7 @@ class HomeController extends Controller
                 $isTooNear = false;
                 if ($item->subject_require_spacing && $th > 2 && $th < $this->endOfWeek) {
                     for ($i = 1; $i <= $this->lessonPerDay; $i++) {
-                        if (str_replace('KT ', ' ',$item->subject_name) == str_replace('KT ', '', $this->schedule[$team->name]['TH' . ($th - 1)]['T' . $i]->subject_name)) {
+                        if (str_replace('KT ', ' ', $item->subject_name) == str_replace('KT ', '', $this->schedule[$team->name]['TH' . ($th - 1)]['T' . $i]->subject_name)) {
                             $isTooNear = true;
                             break;
                         }
@@ -286,9 +319,35 @@ class HomeController extends Controller
             }
 
             if ($teacherFree && $labFree) {
+                $this->currentLine .= '_'.$item->id;
                 return $item;
             }
         }
+
+
+
+        // Nếu tới đây vẫn chưa tìm đc kết quả phù hợp thì sẽ cho đây là đường cụt
+        $this->deadEnd[] = $this->currentLine;
+        file_put_contents('../deadEnd.txt', $this->currentLine."\n", FILE_APPEND);
+
+        // Các khả năng có thể có
+        $options = $this->findWatingLessonsOfTeam($team);
+        echo '<pre>';
+        //print_r($options);
+        echo '</pre>';
+
+        echo 'Đến tiết '.$t.' của ngày thứ '.$th.' lớp '.$team->name.' là chịu<br>';
+        return 'ERR';
+    }
+
+    public function findWatingLessonsOfTeam($team) {
+        $options = array();
+        foreach ($this->waiting as $item) {
+            if ($item->team_id == $team->id) {
+                $options[] = $item;
+            }
+        }
+        return $options;
     }
 
     public function setSchedule($th, $t, $map): bool
