@@ -293,13 +293,9 @@ class Worker
             }
         }
 
-        //$options = $this->findWatingLessonsOfTeam($team);
+        $options = $this->findWatingLessonsOfTeam($team);
 
-        foreach ($this->waiting as $item) {
-            if ($item->team_id != $team->id) {
-                continue;
-            }
-
+        foreach ($options as $item) {
             // Nếu rơi vào đường cụt đã biết trước đó thì continue sang phương án khác
             if (in_array($this->currentLine.'_'.$item->id, $this->deadEnd)) {
                 continue;

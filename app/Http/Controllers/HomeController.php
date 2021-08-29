@@ -45,9 +45,9 @@ class HomeController extends Controller
 
     public function __construct()
     {
-        if (!file_exists('../deadEnd.txt')) {
-            file_put_contents('../deadEndd.txt','');
-        }
+        //if (!file_exists('../deadEnd.txt')) {
+         //   file_put_contents('../deadEnd.txt','');
+       // }
         $this->currentLine = '';
         $this->deadEnd = explode(PHP_EOL, file_get_contents('../deadEnd.txt'));
 
@@ -173,7 +173,7 @@ class HomeController extends Controller
                 for ($t = 1; $t <= $this->lessonPerDay; $t++) {
                     foreach ($this->teams as $teamm) {
                         if ($this->schedule[$teamm->name]['TH' . $th]['T' . $t]->subject_name == '') {
-                            $option = $this->getReasonableOption($th, $t, $teamm, true);
+                            $option = $this->getReasonableOption($th, $t, $teamm, false);
                             if ($option == 'ERR') {
                                 // Ko tìm đc 1 kết quả phù hợp nào thì break luôn khỏi vòng lặp này
                                 goto ret;
