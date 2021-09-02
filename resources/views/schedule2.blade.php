@@ -1,4 +1,3 @@
-Điểm số: {{$score}}
 <table border="1" style="width: 100%; border-spacing: 0">
     <thead>
     <tr>
@@ -16,16 +15,20 @@
                     <td rowspan="5">TH{{$th}}</td>
                 @endif
                 @foreach($teams AS $team)
-                    <td style="height: 30px" @php if (strpos($schedule->{$team->name}->{'TH'.$th}->{'T'.$t}->subject_name, 'Tin') !== false){echo 'class="tin"';};@endphp>
-                        <div>
-                            <strong style="display: inline-block">{{$schedule->{$team->name}->{'TH'.$th}->{'T'.$t}->subject_name}}</strong>
-                        </div>
-                        <span style="display: inline-block">
-                            @if(isset($schedule->{$team->name}->{'TH'.$th}->{'T'.$t}->teacher_name))
-                                {{$schedule->{$team->name}->{'TH'.$th}->{'T'.$t}->teacher_name}}
-                            @endif
+                    @if (isset($schedule['D'.$th]['O'.$t]) && isset($schedule['D'.$th]['O'.$t][$team->name]))
+                        <td style="height: 30px" @php if (strpos($schedule['D'.$th]['O'.$t][$team->name]->subject->name, 'Tin') !== false){echo 'class="tin"';};@endphp>
+                            <div>
+                                <strong style="display: inline-block">{{$schedule['D'.$th]['O'.$t][$team->name]->subject->name}}</strong>
+                            </div>
+                            <span style="display: inline-block">
+                            @if(isset($schedule['D'.$th]['O'.$t][$team->name]->teacher->name))
+                                    {{$schedule['D'.$th]['O'.$t][$team->name]->teacher->name}}
+                                @endif
                         </span>
-                    </td>
+                        </td>
+                    @else
+                        <td>-</td>
+                    @endif
                 @endforeach
             </tr>
         @endfor

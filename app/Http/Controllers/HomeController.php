@@ -8,15 +8,19 @@ use App\Models\Lab;
 use App\Models\MapTeacherSubjectTeam;
 use App\Models\Teacher;
 use App\Models\Team;
-use App\Services\GenTKB;
+use App\Services\Scheduler;
 
 class HomeController extends Controller
 {
     public function generateScheduler() {
-//        $schedule = $result->schedule;
-//        $wating = $result->waiting;
-//        $teams = $result->teams;
-//        $score = $result->score;
-//        return view('schedule2', compact('schedule', 'teams', 'score'));
+        $tkb = new Scheduler();
+        $tkb->generateBase();
+        $schedule = $tkb->results;
+        $teams = $tkb->teams;
+//        echo '<pre>';
+//        print_r($schedule);
+//        exit();
+
+        return view('schedule2', compact('schedule', 'teams'));
     }
 }
