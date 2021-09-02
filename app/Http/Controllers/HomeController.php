@@ -15,6 +15,7 @@ class HomeController extends Controller
     public function generateScheduler() {
         $tkb = new Scheduler();
         $tkb->generateBase();
+        $tkb->evolutionToCorrect();
         $schedule = $tkb->results;
         $teams = $tkb->teams;
 //        echo '<pre>';

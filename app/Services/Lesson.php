@@ -9,10 +9,12 @@ use App\Models\Team;
 
 class Lesson
 {
-    public $teacher;
-    public $subject;
-    public $team;
-    public $lab;
-    public $day;
-    public $order;
+    public $teacher; // Giáo viên
+    public $subject; // Môn
+    public $team; // Lớp
+    public $lab; // Phòng lab
+    public $day; // Thứ
+    public $order; // Tiết
+    public $isStatic = false; // Tiết học này là cố định ko dịch chuyển đi đâu
+    public $isTeacherBusy = false;
 }

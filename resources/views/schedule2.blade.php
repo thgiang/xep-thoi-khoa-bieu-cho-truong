@@ -16,7 +16,16 @@
                 @endif
                 @foreach($teams AS $team)
                     @if (isset($schedule['D'.$th]['O'.$t]) && isset($schedule['D'.$th]['O'.$t][$team->name]))
-                        <td style="height: 30px" @php if (strpos($schedule['D'.$th]['O'.$t][$team->name]->subject->name, 'Tin') !== false){echo 'class="tin"';};@endphp>
+                        <td style="height: 30px" class="@php
+                        if (strpos($schedule['D'.$th]['O'.$t][$team->name]->subject->name, 'Tin') !== false)
+                        {
+                            echo 'tin';
+                        };
+                        if ($schedule['D'.$th]['O'.$t][$team->name]->isTeacherBusy) {
+                            echo ' dp';
+                        }
+                        @endphp">
+
                             <div>
                                 <strong style="display: inline-block">{{$schedule['D'.$th]['O'.$t][$team->name]->subject->name}}</strong>
                             </div>
@@ -40,8 +49,14 @@
         background: #EEE;
     }
 
+    .dp {
+        background: darkred!important;
+        color: #FFF;
+    }
+
     .tin {
         background: orange;
         color: #FFF;
     }
+
 </style>

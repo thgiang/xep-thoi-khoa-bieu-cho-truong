@@ -21,9 +21,10 @@ class Scheduler
         $this->prependData();
     }
 
-    public function prependData() {
+    public function prependData()
+    {
         $this->lessons = MapTeacherSubjectTeam::with('team', 'teacher', 'subject', 'subject.lab')->get();
-        $this->teams = (object) array();
+        $this->teams = (object)array();
         $this->results = array();
         foreach ($this->lessons as $lesson) {
             $this->waitingLessons[$lesson->code] = $lesson;
@@ -52,7 +53,8 @@ class Scheduler
     /*
      * Tạo TKB cơ sở, chỉ cần các lớp đủ tiết, giáo viên đủ giờ dạy, không quan tâm tới việc trùng tiết
      */
-    public function generateBase() {
+    public function generateBase()
+    {
         // Đặt tiết sinh hoạt và tiết chào cờ
         $this->setCCAndSH();
 
@@ -64,20 +66,7 @@ class Scheduler
                 for ($order = 1; $order <= $this->lastOrder; $order++) {
                     foreach ($this->waitingLessons as $map) {
                         // Nếu thiết này có lịch rồi thì bỏ qua
-                        if (isset($this->results['D'.$day]['O'.$order][$map->team->name]))
-                        {
-                            continue;
-                        }
-
-                        // Ghi tiết nghỉ nếu tiết này là tiết nghỉ
-                        if ($this->isOffLesson($day, $order, substr($map->team->name, 0, 1))) {
-                            $ccLesson = new Lesson();
-                            $ccLesson->team = $map->team;
-                            $ccLesson->subject = new Subject();
-                            $ccLesson->subject->block = 1;
-                            $ccLesson->subject->name = '-';
-                            $ccMap = new MapTeacherSubjectTeam();
-                            $this->setLesson($day, $order, $ccLesson, $ccMap);
+                        if (isset($this->results['D' . $day]['O' . $order][$map->team->name])) {
                             continue;
                         }
 
@@ -98,11 +87,34 @@ class Scheduler
         }
     }
 
-    public function setCCAndSH() {
+    /*
+     * Set cứng tiết chào cờ và tiết sinh hoạt
+     */
+    public function setCCAndSH()
+    {
         foreach ($this->teams as $team) {
+            // Ghi ngày nghỉ
+            for ($day = 2; $day <= $this->lastDay; $day++) {
+                for ($order = 1; $order <= $this->lastOrder; $order++) {
+                    // Ghi tiết nghỉ nếu tiết này là tiết nghỉ
+                    if ($this->isOffLesson($day, $order, substr($team->name, 0, 1))) {
+                        $ccLesson = new Lesson();
+                        $ccLesson->isStatic = true;
+                        $ccLesson->team = $team;
+                        $ccLesson->subject = new Subject();
+                        $ccLesson->subject->block = 1;
+                        $ccLesson->subject->name = '-';
+                        $ccMap = new MapTeacherSubjectTeam();
+                        $this->setLesson($day, $order, $ccLesson, $ccMap);
+                        continue;
+                    }
+                }
+            }
+
             // Chào cờ
             $ccLesson = new Lesson();
             $ccLesson->team = $team;
+            $ccLesson->isStatic = true;
             $ccLesson->subject = new Subject();
             $ccLesson->subject->block = 1;
             $ccLesson->subject->name = 'Chào cờ';
@@ -113,6 +125,7 @@ class Scheduler
             foreach ($this->waitingLessons as $waitingLesson) {
                 if ($waitingLesson->team->id == $team->id && substr($waitingLesson->subject->name, 0, 2) == 'SH') {
                     $lesson = new Lesson();
+                    $lesson->isStatic = true;
                     $lesson->subject = $waitingLesson->subject;
                     $lesson->team = $waitingLesson->team;
                     $lesson->teacher = $waitingLesson->teacher;
@@ -128,7 +141,8 @@ class Scheduler
         }
     }
 
-    public function setLesson($day, $order, $lesson, $map) {
+    public function setLesson($day, $order, $lesson, $map)
+    {
         if ($this->lastOrder - $order < $lesson->subject->block - 1) {
             // Không thể sắp môn học có 2 tiết vào tiết cuối vì sẽ bị học quá trưa
             return false;
@@ -136,15 +150,15 @@ class Scheduler
 
         // Kiểm tra xem tiết này đã có môn chưa
         for ($i = 0; $i < $lesson->subject->block; $i++) {
-            if (isset($this->results['D'.$day]['O'.$order][$lesson->team->name])
+            if (isset($this->results['D' . $day]['O' . $order][$lesson->team->name])
                 &&
-                $this->results['D'.$day]['O'.$order][$lesson->team->name]->subject->name != '') {
+                $this->results['D' . $day]['O' . $order][$lesson->team->name]->subject->name != '') {
                 return false;
             }
         }
         // Ghi tiết học vào TKB
         for ($i = 0; $i < $lesson->subject->block; $i++) {
-            $this->results['D'.$day]['O'.($order + $i)][$lesson->team->name] = $lesson;
+            $this->results['D' . $day]['O' . ($order + $i)][$lesson->team->name] = $lesson;
         }
 
         // Giảm số tiết hoặc bỏ tiết học này ra khỏi mảng waiting (nếu hết tiết)
@@ -161,18 +175,17 @@ class Scheduler
     /*
      * Kiểm tra xem tiết này lớp có đc nghỉ không
      */
-    public function isOffLesson($day, $order, $group): bool {
+    public function isOffLesson($day, $order, $group): bool
+    {
         // Khối 8 học full, còn các khối khác đc nghỉ 1 vài tiết 5
         // Khối 6 nghỉ thứ 3, 5, 6
         if ($group == 6 && $order == $this->lastOrder && ($day == 3 || $day == 5 || $day == 6)) {
             return true;
-        }
-        // Khối 7 nghỉ thứ 3, 6
+        } // Khối 7 nghỉ thứ 3, 6
         else if ($group == 7 && $order == $this->lastOrder && ($day == 3 || $day == 6)) {
             return true;
-        }
-        // Khối 9 nghỉ thứ 5
-        else  if ($group == 9 && $order == $this->lastOrder && ($day == 5)) {
+        } // Khối 9 nghỉ thứ 5
+        else if ($group == 9 && $order == $this->lastOrder && ($day == 5)) {
             return true;
         }
         return false;
@@ -181,7 +194,8 @@ class Scheduler
     /*
      * Kiểm tra xem có phải ngày giáo viên muốn nghỉ hay ko
      */
-    public function isTeacherDayOff($day, $order, $teacher) {
+    public function isTeacherDayOff($day, $order, $teacher)
+    {
 
         $skipDays = @json_decode($teacher->skip_days, true);
 
@@ -198,4 +212,86 @@ class Scheduler
         return 'none';
     }
 
+    /*
+     * Tiến hóa đến mức đúng
+     */
+    public function evolutionToCorrect()
+    {
+        $theHe = 0;
+        do {
+            $theHe ++;
+            $hasIssue = false;
+            for ($day = 2; $day <= $this->lastDay; $day++) {
+                for ($order = 1; $order <= $this->lastOrder; $order++) {
+                    foreach ($this->results['D' . $day]['O' . $order] as $k => $lesson) {
+                        if ($lesson->teacher && $this->isTeacherBusy($day, $order, $lesson->team, $lesson->teacher)) {
+                            $this->results['D' . $day]['O' . $order][$k]->isTeacherBusy = true;
+                            // Rơi vào tình huống trùng lịch thì tìm giáo viên thay
+                            $replacementTeacher = $this->findFirstReplacementTeacher($day, $order, $lesson->team);
+                            // Ko tìm đc giáo viên thay thế
+                            if ($replacementTeacher['D'] == null) {
+                                $hasIssue = true;
+                                continue;
+                            } else {
+                                // Có tìm đc giáo viên thay thế thì đảo tiết giữa 2 GV
+                                // Sau khi đảo xong thì cả 2 giáo viên đã hết bị trùng tiết
+                                $replacementLesson = $this->results['D' . $replacementTeacher['D']]['O' . $replacementTeacher['O']][$k];
+                                $replacementLesson->isTeacherBusy = false;
+                                $tmpLesson = $this->results['D' . $day]['O' . $order][$k];
+                                $tmpLesson->isTeacherBusy = false;
+
+                                $this->results['D' . $day]['O' . $order][$k] = $replacementLesson;
+                                $this->results['D' . $replacementTeacher['D']]['O' . $replacementTeacher['O']][$k] = $tmpLesson;
+                            }
+                        } else {
+                            $this->results['D' . $day]['O' . $order][$k]->isTeacherBusy = false;
+                        }
+                    }
+                }
+            }
+        } while ($hasIssue == true);
+        echo $theHe;
+    }
+
+    /*
+     * Tìm giáo viên thay thế phù hợp
+     */
+    public function findFirstReplacementTeacher($replaceDay, $replaceOrder, $team): array
+    {
+        for ($day = 2; $day <= $this->lastDay; $day++) {
+            for ($order = 1; $order <= $this->lastOrder; $order++) {
+                $lesson = $this->results['D'.$day]['O'.$order][$team->name];
+                if ($lesson->teacher && !$lesson->isStatic) {
+                    // Nếu có giáo viên và giáo viên hôm đó có thể thay thế cho hôm nay
+                    if (!$this->isTeacherBusy($replaceDay, $replaceOrder, $team, $lesson->teacher)) {
+                        // Và ngược lại giáo viên hôm nay đảo sang hôm đó cũng ko bị trùng lịch
+                        if (!$this->isTeacherBusy($day, $order, $team, $this->results['D'.$replaceDay]['O'.$replaceOrder][$team->name]->teacher)) {
+                            return array('D' => $day, 'O' => $order);
+                        }
+                    }
+                }
+            }
+        }
+        return array('D' => null, 'O' => null);
+    }
+
+    /*
+     * Kiểm tra tiết này giáo viên có đang bị trùng lịch không
+     */
+    public function isTeacherBusy($day, $order, $team, $teacher)
+    {
+        // Tiết giáo viên nghỉ thì auto là bận
+        if ($this->isTeacherDayOff($day, $order, $teacher) == 'require') {
+            return true;
+        }
+
+        foreach ($this->results['D' . $day]['O' . $order] as $lesson) {
+            if (!$lesson->teacher || !$lesson->teacher->name) {
+                continue;
+            }
+            if ($lesson->team->name != $team->name && $lesson->teacher->name == $teacher->name) {
+                return true;
+            }
+        }
+    }
 }
