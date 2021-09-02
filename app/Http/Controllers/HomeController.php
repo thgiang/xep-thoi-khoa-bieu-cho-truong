@@ -13,10 +13,16 @@ use App\Services\Scheduler;
 class HomeController extends Controller
 {
     public function generateScheduler() {
-        $tkb = new Scheduler();
-        $tkb->generateBase();
-        $tkb->evolutionToCorrect();
-        $schedule = $tkb->results;
+//        $tkb = new Scheduler();
+//        $tkb->generateBase();
+//        $tkb->evolutionToCorrect();
+//        $tkb->fineTuning();
+//
+//        echo $tkb->maxScore;
+//        echo '<br>';
+
+        $tkb = json_decode(file_get_contents('../best_result.txt'));
+        $schedule = $tkb->schedule;
         $teams = $tkb->teams;
 //        echo '<pre>';
 //        print_r($schedule);

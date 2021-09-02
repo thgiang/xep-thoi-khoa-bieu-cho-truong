@@ -16,6 +16,8 @@ class Scheduler
     private $lastOrder = 5;
     private $lastDay = 7;
     private $teacherLessons; // Danh sách giáo án của giáo viên trong ngày $teacherLessons['Duyên']['D5'] = array('Toán 8_1', 'Toán 8_2', 'KHTN 6_1');
+    public $maxScore = -999999999;
+    public $bestResults;
 
     public function __construct()
     {
@@ -148,12 +150,11 @@ class Scheduler
      */
     public function setLessonForBase($day, $order, $lesson, $map)
     {
-        /* Tạm bỏ yêu cầu này vì dù sao lát nữa ở bước evolution cũng bị đảo lên
+        // Bước này ko cần vì lát nữa sẽ bị evolution đảo lại, tuy nhiên cứ để tạm vì bộ data hiện tại nếu sắp xếp như này thì evolution nhanh hơn
         if ($this->isNotEnoughSpaceForBlock($day, $order, $lesson)) {
             // Không thể sắp môn học có 2 tiết vào tiết cuối vì sẽ bị học quá trưa
             return false;
         }
-        */
 
         // Kiểm tra xem tiết này đã có môn chưa
         for ($i = 0; $i < $lesson->subject->block; $i++) {
@@ -163,6 +164,7 @@ class Scheduler
                 return false;
             }
         }
+
         // Ghi tiết học vào TKB
         for ($i = 0; $i < $lesson->subject->block; $i++) {
             $this->results['D' . $day]['O' . ($order + $i)][$lesson->team->name] = $lesson;
@@ -227,11 +229,15 @@ class Scheduler
         $theHe = 0;
         $start = microtime(true);
         do {
-            $theHe ++;
+            $theHe++;
             $hasIssue = false;
             for ($day = 2; $day <= $this->lastDay; $day++) {
                 for ($order = 1; $order <= $this->lastOrder; $order++) {
                     foreach ($this->results['D' . $day]['O' . $order] as $k => $lesson) {
+                        if ($lesson->isStatic) {
+                            continue;
+                        }
+
                         if ($lesson->teacher && $this->isTeacherBusy($day, $order, $lesson->team, $lesson)) {
                             $this->results['D' . $day]['O' . $order][$k]->isTeacherBusy = true;
                             // Rơi vào tình huống trùng lịch thì tìm giáo viên thay
@@ -260,7 +266,7 @@ class Scheduler
         } while ($hasIssue == true);
         $stop = microtime(true);
 
-        echo  'Kết quả thế hệ thứ '. $theHe . ' sau ' .number_format($stop - $start) .' giây';
+        echo 'Kết quả thế hệ thứ ' . $theHe . ' sau ' . number_format($stop - $start) . ' giây';
     }
 
     /*
@@ -271,15 +277,17 @@ class Scheduler
         $team = $lesson->team;
         for ($day = 2; $day <= $this->lastDay; $day++) {
             for ($order = 1; $order <= $this->lastOrder; $order++) {
-                if (!isset($this->results['D'.$day]['O'.$order][$team->name])) {
+                if (!isset($this->results['D' . $day]['O' . $order][$team->name]) || $this->results['D' . $day]['O' . $order][$team->name]->isStatic) {
                     continue;
                 }
-                $lesson = $this->results['D'.$day]['O'.$order][$team->name];
-                if ($lesson->teacher && !$lesson->isStatic) {
+
+                $checkLesson = $this->results['D' . $day]['O' . $order][$team->name];
+
+                if ($checkLesson->teacher && !$checkLesson->isStatic) {
                     // Nếu có giáo viên và giáo viên hôm đó có thể thay thế cho hôm nay
-                    if (!$this->isTeacherBusy($replaceDay, $replaceOrder, $team, $lesson)) {
+                    if (!$this->isTeacherBusy($replaceDay, $replaceOrder, $team, $checkLesson)) {
                         // Và ngược lại giáo viên hôm nay đảo sang hôm đó cũng ko bị trùng lịch
-                        if (!$this->isTeacherBusy($day, $order, $team, $this->results['D'.$replaceDay]['O'.$replaceOrder][$team->name])) {
+                        if (!$this->isTeacherBusy($day, $order, $team, $this->results['D' . $replaceDay]['O' . $replaceOrder][$team->name])) {
                             return array('D' => $day, 'O' => $order);
                         }
                     }
@@ -287,6 +295,35 @@ class Scheduler
             }
         }
         return array('D' => null, 'O' => null);
+    }
+
+    /*
+     * Tìm tất cả giáo viên thay thế phù hợp
+     */
+    public function findAllReplacementTeachers($replaceDay, $replaceOrder, $lesson): array
+    {
+        $team = $lesson->team;
+        $rt = [];
+        for ($day = 2; $day <= $this->lastDay; $day++) {
+            for ($order = 1; $order <= $this->lastOrder; $order++) {
+                if (!isset($this->results['D' . $day]['O' . $order][$team->name]) || $this->results['D' . $day]['O' . $order][$team->name]->isStatic) {
+                    continue;
+                }
+
+                $checkLesson = $this->results['D' . $day]['O' . $order][$team->name];
+
+                if ($checkLesson->teacher && !$checkLesson->isStatic) {
+                    // Nếu có giáo viên và giáo viên hôm đó có thể thay thế cho hôm nay
+                    if (!$this->isTeacherBusy($replaceDay, $replaceOrder, $team, $checkLesson)) {
+                        // Và ngược lại giáo viên hôm nay đảo sang hôm đó cũng ko bị trùng lịch
+                        if (!$this->isTeacherBusy($day, $order, $team, $this->results['D' . $replaceDay]['O' . $replaceOrder][$team->name])) {
+                            $rt[] = array('D' => $day, 'O' => $order);
+                        }
+                    }
+                }
+            }
+        }
+        return $rt;
     }
 
     /*
@@ -301,16 +338,16 @@ class Scheduler
 
         // 1 giáo viên 1 ngày ko dạy quá 3 giáo án, vì vậy nếu đủ rồi là bận
         $countTeacherLessons = 0;
-        if (isset($this->teacherLessons[$lesson->teacher->name]) && isset($this->teacherLessons[$lesson->teacher->name]['D'.$day])) {
+        if (isset($this->teacherLessons[$lesson->teacher->name]) && isset($this->teacherLessons[$lesson->teacher->name]['D' . $day])) {
             // Đếm số giáo án đang có
-            $teacherLessons = $this->teacherLessons[$lesson->teacher->name]['D'.$day];
+            $teacherLessons = $this->teacherLessons[$lesson->teacher->name]['D' . $day];
             $countTeacherLessons = count($teacherLessons);
 
             // Xác định xem nếu bây giờ đặt giáo viên vào tiết này thì sẽ là giáo án thứ bao nhiêu
             $currentPositionOfGa = $this->countPreviousSameLesson($day, $order, $lesson) + 1;
-            $gaName = $lesson->subject->name .'__'.$currentPositionOfGa;
+            $gaName = $lesson->subject->name . '__' . $currentPositionOfGa;
             if (!in_array($gaName, $teacherLessons)) {
-                $countTeacherLessons ++;
+                $countTeacherLessons++;
             }
             // Nếu có trên 3 giáo án thì loại
             if ($countTeacherLessons > 3) {
@@ -332,7 +369,8 @@ class Scheduler
     /*
      * Hàm set lesson vào TKB, chỉ dùng ở giai đoạn tiến hóa
      */
-    public function setLessonEvolution($day, $order, $lesson) {
+    public function setLessonEvolution($day, $order, $lesson)
+    {
         $this->results['D' . $day]['O' . $order][$lesson->team->name] = $lesson;
 
         // Đếm lại số giáo án trong ngày của GV
@@ -342,18 +380,18 @@ class Scheduler
     /*
      * Xây dựng mảng các giáo án của giáo viên theo ngày
      */
-    public function calcTeacherLessons() {
+    public function calcTeacherLessons()
+    {
         $teamSubjects = [];
         $this->teacherLessons = array();
         for ($day = 2; $day <= $this->lastDay; $day++) {
             for ($order = 1; $order <= $this->lastOrder; $order++) {
-                foreach ($this->results['D'.$day]['O'.$order] as $lesson) {
+                foreach ($this->results['D' . $day]['O' . $order] as $lesson) {
                     if (!$lesson->teacher
                         || mb_substr($lesson->subject->name, 0, -2) == 'Tin'
-                        || mb_substr($lesson->subject->name, 0, -2)  == 'VănKT'
-                        || mb_substr($lesson->subject->name, 0, -2)  == 'SH'
-                    )
-                    {
+                        || mb_substr($lesson->subject->name, 0, -2) == 'VănKT'
+                        || mb_substr($lesson->subject->name, 0, -2) == 'SH'
+                    ) {
                         continue;
                     }
 
@@ -367,15 +405,15 @@ class Scheduler
                     $teamSubjects[$lesson->team->name][$lesson->subject->name]++;
 
                     // Tên giáo án bằng tên môn học nối với lần xuất hiện thứ mấy trong tuần
-                    $gaName = $lesson->subject->name.'__'.$teamSubjects[$lesson->team->name][$lesson->subject->name];
+                    $gaName = $lesson->subject->name . '__' . $teamSubjects[$lesson->team->name][$lesson->subject->name];
                     if (!isset($this->teacherLessons[$lesson->teacher->name])) {
                         $this->teacherLessons[$lesson->teacher->name] = array();
                     }
-                    if (!isset($this->teacherLessons[$lesson->teacher->name]['D'.$day])) {
-                        $this->teacherLessons[$lesson->teacher->name]['D'.$day] = array();
+                    if (!isset($this->teacherLessons[$lesson->teacher->name]['D' . $day])) {
+                        $this->teacherLessons[$lesson->teacher->name]['D' . $day] = array();
                     }
-                    if (!in_array($gaName, $this->teacherLessons[$lesson->teacher->name]['D'.$day])) {
-                        $this->teacherLessons[$lesson->teacher->name]['D'.$day][] = $gaName;
+                    if (!in_array($gaName, $this->teacherLessons[$lesson->teacher->name]['D' . $day])) {
+                        $this->teacherLessons[$lesson->teacher->name]['D' . $day][] = $gaName;
                     }
                 }
             }
@@ -385,7 +423,8 @@ class Scheduler
     /*
      * Tính xem trc đó đã xuất hiện môn học này bao nhiêu lần, để suy ra giáo án mà giáo viên sẽ phải sử dụng trong ngày
      */
-    public function countPreviousSameLesson($currentDay, $currentOrder, $currentLesson) {
+    public function countPreviousSameLesson($currentDay, $currentOrder, $currentLesson)
+    {
         $count = 0;
         for ($day = 2; $day <= $currentDay; $day++) {
             for ($order = 1; $order <= $currentOrder; $order++) {
@@ -403,7 +442,8 @@ class Scheduler
      * Khi 1 môn học có block > 1 bị move, thì hàm findReplacement đã tìm cho nó 1 vị trí đủ rộng để đặt các tiết dưới
      * Nhiệm vụ bây giờ chỉ là nối thêm các tiết trong cùng block xuống dưới
      */
-    public function appendRelationshipLesson($blockDay, $blockOrder, $blockLesson) {
+    public function appendRelationshipLesson($blockDay, $blockOrder, $blockLesson)
+    {
         for ($day = 2; $day <= $this->lastDay; $day++) {
             for ($order = 1; $order <= $this->lastOrder; $order++) {
                 foreach ($this->results['D' . $day]['O' . $order] as $teamName => $lesson) {
@@ -414,12 +454,12 @@ class Scheduler
                         continue;
                     } else if ($day == $blockDay && ($order <= $blockOrder + $foundLessonOnBlock[$teamName])) {
                         continue;
-                    } else if ($lesson->subject->name == $blockLesson->subject->name){
+                    } else if ($lesson->subject->name == $blockLesson->subject->name) {
                         // Tìm thấy 1 môn trong block mà ko phải môn vừa đc di chuyển
                         // Thì di chuyển xuống dưới để tạo thành cụm mới
-                        $foundLessonOnBlock[$teamName] ++;
+                        $foundLessonOnBlock[$teamName]++;
 
-                        $tmp =  $this->results['D'.$blockDay]['O'.($blockOrder + $foundLessonOnBlock[$teamName])][$teamName];
+                        $tmp = $this->results['D' . $blockDay]['O' . ($blockOrder + $foundLessonOnBlock[$teamName])][$teamName];
                         $this->setLessonEvolution($day, $order, $tmp);
                         $this->setLessonEvolution($blockDay, $blockOrder + $foundLessonOnBlock[$teamName], $lesson);
                     }
@@ -428,7 +468,8 @@ class Scheduler
         }
     }
 
-    public function isNotEnoughSpaceForBlock($day, $order, $lesson) {
+    public function isNotEnoughSpaceForBlock($day, $order, $lesson)
+    {
         $minus = 0;
         if ($this->isOffLesson($day, $order, mb_substr($lesson->team->name, 0, 1))) {
             $minus = 1;
@@ -436,5 +477,93 @@ class Scheduler
         if ($this->lastOrder - $order - $minus < $lesson->subject->block - 1) {
             return true;
         }
+    }
+
+    //////////
+    /// Giai đoạn 3, tinh chỉnh
+
+    public function fineTuning($from = 0, $to = 5)
+    {
+        $this->bestResults = $this->results;
+        $this->maxScore = -999999999;
+        for ($i = $from; $i < $to; $i++) {
+            for ($day = 2; $day <= $this->lastDay; $day++) {
+                for ($order = 1; $order <= $this->lastOrder; $order++) {
+                    foreach ($this->results['D' . $day]['O' . $order] as $k => $lesson) {
+                        if ($lesson->isStatic) {
+                            continue;
+                        }
+
+                        $reps = $this->findAllReplacementTeachers($day, $order, $lesson);
+                        if (empty($reps)) {
+                            continue;
+                        } else {
+                            foreach ($reps as $replacementTeacher) {
+                                // Có tìm đc giáo viên thay thế thì đảo tiết giữa 2 GV
+                                // Sau khi đảo xong thì cả 2 giáo viên đã hết bị trùng tiết
+                                $replacementLesson = $this->results['D' . $replacementTeacher['D']]['O' . $replacementTeacher['O']][$k];
+                                $replacementLesson->isTeacherBusy = false;
+                                $tmpLesson = $this->results['D' . $day]['O' . $order][$k];
+                                $tmpLesson->isTeacherBusy = false;
+
+                                $this->setLessonEvolution($day, $order, $replacementLesson);
+                                $this->setLessonEvolution($replacementTeacher['D'], $replacementTeacher['O'], $tmpLesson);
+
+                                $score = $this->fitness();
+                                //echo $score.'<br>';
+                                if ($this->maxScore < $score) {
+                                    $this->maxScore = $score;
+                                    $this->bestResults = $this->results;
+                                    file_put_contents('best_result.txt', json_encode(array('teams' => $this->teams, 'schedule' => $this->bestResults)));
+                                }
+                                echo 'Lần chạy thứ ' . $i . ' kết quả ' . $score . ' tốt nhất ' . $this->maxScore . "<br>\n";
+                                $this->results = $this->bestResults;
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+     * Đánh giá điểm của TKB
+     */
+    public function fitness()
+    {
+        $score = 10000;
+        // Tiêu chí 1: Tránh tiết cuối
+        for ($i = 0; $i < 3; $i++) {
+            for ($day = 2; $day <= $this->lastDay; $day++) {
+                for ($order = 1; $order <= $this->lastOrder; $order++) {
+                    foreach ($this->results['D' . $day]['O' . $order] as $lesson) {
+                        // Môn học tránh tiết cuối
+                        if ($lesson->subject->avoid_last_lesson && $order == $this->lastOrder) {
+                            $score -= 5;
+                        }
+
+                        // Môn học block nhưng lại ko liền nhau
+                        if ($lesson->subject->block > 1) {
+                            $before = false;
+                            if (isset($this->results['D' . $day]['O' . ($order - 1)][$lesson->team->name]) && $this->results['D' . $day]['O' . ($order - 1)][$lesson->team->name]->subject->name == $lesson->subject->name) {
+                                $before = true;
+                            }
+                            $after = false;
+                            if (isset($this->results['D' . $day]['O' . ($order + 1)][$lesson->team->name]) && $this->results['D' . $day]['O' . ($order + 1)][$lesson->team->name]->subject->name == $lesson->subject->name) {
+                                $after = true;
+                            }
+                            if ($before || $after) {
+                                $score += 100;
+                            } else {
+                                $score -= 100;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $score;
     }
 }
