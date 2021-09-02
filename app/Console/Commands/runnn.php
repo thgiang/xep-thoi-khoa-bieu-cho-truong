@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Http\Controllers\Controller;
+use App\Models\DeadEnd;
 use App\Models\Lab;
 use App\Models\MapTeacherSubjectTeam;
 use App\Models\Subject;
@@ -63,7 +64,6 @@ class runnn extends Command
 
 class Worker
 {
-    private $deadEnd;
     private $currentLine;
     private $schedule;
     private $teachersBusy;
@@ -96,7 +96,6 @@ class Worker
     public function __construct()
     {
         $this->currentLine = '';
-        $this->deadEnd = explode(PHP_EOL, file_get_contents('deadEnd.txt'));
 
         $this->schedule = [];
         $this->labs = Lab::get();
@@ -181,12 +180,6 @@ class Worker
                 } else {
                     $this->setSchedule(6, 5, $shMap);
                 }
-
-                // Tìm môn của GVCN đặt ngay vào sau chào cờ, nên thế nhưng ko đc vì có lớp phải đi học Tin luôn do thiếu phòng máy
-//                $mainTeacherSubject = $this->findOption(['teacher_id' => $map->teacher_id, 'team_id' => $team->id]);
-//                if ($mainTeacherSubject) {
-//                    $this->setSchedule(2, 2, $mainTeacherSubject);
-//                }
             }
         }
 
@@ -220,7 +213,7 @@ class Worker
                 for ($t = 1; $t <= $this->lessonPerDay; $t++) {
                     foreach ($this->teams as $teamm) {
                         if ($this->schedule[$teamm->name]['TH' . $th]['T' . $t]->subject_name == '') {
-                            $option = $this->getReasonableOption($th, $t, $teamm, false);
+                            $option = $this->getReasonableOption($th, $t, $teamm, true);
                             if ($option == 'ERR') {
                                 // Ko tìm đc 1 kết quả phù hợp nào thì break luôn khỏi vòng lặp này
                                 goto ret;
@@ -296,8 +289,10 @@ class Worker
         $options = $this->findWatingLessonsOfTeam($team);
 
         foreach ($options as $item) {
+
             // Nếu rơi vào đường cụt đã biết trước đó thì continue sang phương án khác
-            if (in_array($this->currentLine.'_'.$item->id, $this->deadEnd)) {
+            $code = md5($this->currentLine . '_' . $item->id);
+            if (DeadEnd::where('hash', $code)->first()) {
                 continue;
             }
 
@@ -352,16 +347,19 @@ class Worker
             }
 
             if ($teacherFree && $labFree) {
-                $this->currentLine .= '_'.$item->id;
+                $this->currentLine .= '_' . $item->id;
                 return $item;
             }
         }
 
 
-
         // Nếu tới đây vẫn chưa tìm đc kết quả phù hợp thì sẽ cho đây là đường cụt
-        $this->deadEnd[] = $this->currentLine;
-        file_put_contents('deadEnd.txt', $this->currentLine."\n", FILE_APPEND);
+        echo 'Luu dead end';
+        $code = md5($this->currentLine);
+        $newDeadEnd = new DeadEnd();
+        $newDeadEnd->hash = $code;
+        $newDeadEnd->save();
+
         return 'ERR';
     }
 

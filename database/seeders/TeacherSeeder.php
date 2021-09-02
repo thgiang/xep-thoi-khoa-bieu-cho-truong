@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Teacher;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -52,5 +53,51 @@ class TeacherSeeder extends Seeder
         }
 
         DB::table('teachers')->insert($data);
+
+        //Tân	Tuyết	Nhật	Thơm buộc phải trống T7 do đi học
+        //Ng.Hương tổng phụ trách, muốn trống T2, T7
+        //Hoàng Hương nhà xa muốn nghỉ T7
+
+        $nghiT7 = [
+            ['th' => 7, 't' => 1, 'priority' => 'require'],
+            ['th' => 7, 't' => 2, 'priority' => 'require'],
+            ['th' => 7, 't' => 3, 'priority' => 'require'],
+            ['th' => 7, 't' => 4, 'priority' => 'require'],
+            ['th' => 7, 't' => 5, 'priority' => 'require'],
+        ];
+
+        $muonNghiT7 = [
+            ['th' => 7, 't' => 1, 'priority' => 'optional'],
+            ['th' => 7, 't' => 2, 'priority' => 'optional'],
+            ['th' => 7, 't' => 3, 'priority' => 'optional'],
+            ['th' => 7, 't' => 4, 'priority' => 'optional'],
+            ['th' => 7, 't' => 5, 'priority' => 'optional'],
+        ];
+
+        $nghiT2 = [
+            ['th' => 2, 't' => 1, 'priority' => 'require'],
+            ['th' => 2, 't' => 2, 'priority' => 'require'],
+            ['th' => 2, 't' => 3, 'priority' => 'require'],
+            ['th' => 2, 't' => 4, 'priority' => 'require'],
+            ['th' => 2, 't' => 5, 'priority' => 'require'],
+        ];
+
+        $gvNghiT7s = Teacher::whereIn('name', ['Tân', 'Tuyết', 'Nhật', 'Thơm'])->get();
+        foreach ($gvNghiT7s as $gvNghiT7) {
+            $gvNghiT7->skip_days = json_encode($nghiT7);
+            $gvNghiT7->save();
+        }
+
+        $gvMuonNghiT7s = Teacher::whereIn('name', ['H.Hương'])->get();
+        foreach ($gvMuonNghiT7s as $gvMuonNghiT7) {
+            $gvMuonNghiT7->skip_days = json_encode($muonNghiT7);
+            $gvMuonNghiT7->save();
+        }
+
+        $gvNghiT2s = Teacher::whereIn('name', ['N.Hương'])->get();
+        foreach ($gvNghiT2s as $gvNghiT2) {
+            $gvNghiT2->skip_days = json_encode($nghiT2);
+            $gvNghiT2->save();
+        }
     }
 }
