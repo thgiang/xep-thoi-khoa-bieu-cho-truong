@@ -41,7 +41,7 @@ class run extends Command
         $tkb = new Scheduler();
         $tkb->generateBase();
         $tkb->evolutionToCorrect();
-        $tkb->fineTuning(0, 100);
+        $tkb->fineTuning(0, 1);
         return 0;
     }
 }

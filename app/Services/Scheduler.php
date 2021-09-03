@@ -308,8 +308,13 @@ class Scheduler
     {
         $team = $lesson->team;
         $rt = [];
-        for ($day = 2; $day <= $this->lastDay; $day++) {
+        for ($day = $replaceDay; $day <= $this->lastDay; $day++) {
             for ($order = 1; $order <= $this->lastOrder; $order++) {
+                // Chỉ tìm những môn từ tiết này trở xuống vì những môn ở trên đã nằm trong vòng lặp của môn bên trên
+                if ($day == $replaceDay && $order <= $replaceOrder) {
+                    continue;
+                }
+
                 if (!isset($this->results['D' . $day]['O' . $order][$team->name]) || $this->results['D' . $day]['O' . $order][$team->name]->isStatic) {
                     continue;
                 }
@@ -488,6 +493,7 @@ class Scheduler
 
     public function fineTuning($from = 0, $to = 5)
     {
+        $dao = 0;
         $this->bestResults = $this->results;
         $this->maxScore = -999999999;
         for ($i = $from; $i < $to; $i++) {
@@ -503,6 +509,7 @@ class Scheduler
                             continue;
                         } else {
                             foreach ($reps as $replacementTeacher) {
+                                $dao++;
                                 // Có tìm đc giáo viên thay thế thì đảo tiết giữa 2 GV
                                 // Sau khi đảo xong thì cả 2 giáo viên đã hết bị trùng tiết
                                 $replacementLesson = $this->results['D' . $replacementTeacher['D']]['O' . $replacementTeacher['O']][$k];
@@ -515,11 +522,13 @@ class Scheduler
 
                                 $score = $this->fitness();
                                 //echo $score.'<br>';
+                                // Nếu kết quả tốt hơn thì lưu kết quả tốt nhất
                                 if ($this->maxScore < $score) {
                                     $this->maxScore = $score;
                                     $this->bestResults = $this->results;
                                     file_put_contents('best_result.txt', json_encode(array('teams' => $this->teams, 'schedule' => $this->bestResults)));
                                 }
+
                                 echo 'Lần chạy thứ ' . $i . ' kết quả ' . $score . ' tốt nhất ' . $this->maxScore . "<br>\n";
                                 $this->results = $this->bestResults;
                             }
@@ -529,6 +538,7 @@ class Scheduler
                 }
             }
         }
+        echo 'Dao '.number_format($dao);
     }
 
     /*

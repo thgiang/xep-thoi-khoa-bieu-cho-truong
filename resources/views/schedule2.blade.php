@@ -67,7 +67,7 @@
     }
     .stt {
         background: #EEE!important;
-        color: #FFF;
+        color: #888;
     }
     .van {
         background: green;
