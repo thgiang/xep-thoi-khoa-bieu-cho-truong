@@ -277,6 +277,10 @@ class Scheduler
         $team = $lesson->team;
         for ($day = 2; $day <= $this->lastDay; $day++) {
             for ($order = 1; $order <= $this->lastOrder; $order++) {
+                if ($day == $replaceDay && $order == $replaceOrder) {
+                    continue;
+                }
+
                 if (!isset($this->results['D' . $day]['O' . $order][$team->name]) || $this->results['D' . $day]['O' . $order][$team->name]->isStatic) {
                     continue;
                 }
